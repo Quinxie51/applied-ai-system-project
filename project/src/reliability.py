@@ -34,13 +34,19 @@ def reliability_check(original_query: str, top3: List[Dict[str, object]], songs:
         if anthropic is None:
             raise RuntimeError("anthropic SDK not installed")
 
-        client = anthropic.Client(api_key=api_key)
-        full_prompt = f"Human: {original_query}\n\nAssistant:"
-        resp = client.completions.create(model="claude-sonnet-4-20250514", prompt=full_prompt, max_tokens_to_sample=150)
-        if isinstance(resp, dict):
-            text = resp.get("completion") or resp.get("text") or str(resp)
+        client = anthropic.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=150,
+            system=system,
+            messages=[{"role": "user", "content": original_query}]
+        )
+
+        if hasattr(resp, "content") and len(resp.content) > 0:
+            text = resp.content[0].text if hasattr(resp.content[0], "text") else str(resp.content[0])
         else:
-            text = getattr(resp, "completion", None) or str(resp)
+            text = str(resp)
+        
         paraphrased = text.strip().splitlines()[0].strip() if text else original_query
     except Exception as e:
         # On error, leave paraphrased as original and continue

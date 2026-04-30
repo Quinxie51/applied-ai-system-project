@@ -89,22 +89,24 @@ def parse_vibe(query: str) -> Dict[str, Optional[object]]:
         print("ANTHROPIC_API_KEY not found in environment")
         return {"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}
 
-    prompt = system_prompt + "\n\n" + query
-
     try:
         if anthropic is None:
             raise RuntimeError("anthropic SDK not installed")
 
-        client = anthropic.Client(api_key=api_key)
-        # Build basic prompt framing for Claude style
-        full_prompt = f"Human: {query}\n\nAssistant:"
-        resp = client.completions.create(model="claude-sonnet-4-20250514", prompt=full_prompt, max_tokens_to_sample=300)
+        client = anthropic.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=300,
+            system=system_prompt,
+            messages=[{"role": "user", "content": query}]
+        )
+
         # Extract text from response
-        text = None
-        if isinstance(resp, dict):
-            text = resp.get("completion") or resp.get("text") or str(resp)
+        text = ""
+        if hasattr(resp, "content") and len(resp.content) > 0:
+            text = resp.content[0].text if hasattr(resp.content[0], "text") else str(resp.content[0])
         else:
-            text = getattr(resp, "completion", None) or str(resp)
+            text = str(resp)
 
         # Try to parse JSON directly from the returned text
         parsed = None
