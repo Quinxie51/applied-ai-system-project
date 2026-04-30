@@ -65,22 +65,36 @@ rephrased input, and the two top-3 lists are compared. If fewer than 2 songs
 overlap, the result is flagged as unstable. This is the project's built-in 
 testing system for AI consistency.
 
+**System Diagram:** See [assets/ARCHITECTURE.md](assets/ARCHITECTURE.md) for a detailed data flow diagram and explanation of each component.
+
 ---
 
 ## File Structure
 
 ```
 vibematch/
+├── assets/
+│   └── ARCHITECTURE.md       ← System diagram and data flow explanation
 ├── data/
-│   └── songs.csv            ← 20 songs: genre, mood, energy, tempo_bpm,
-│                               title, artist, era
+│   └── songs.csv            ← 20 songs with metadata (title, artist, genre, 
+│                               mood, energy, tempo_bpm, era)
 ├── src/
-│   ├── recommender.py       ← original load_songs, score_song, recommend_songs
-│   │                           (extended with era scoring)
-│   ├── embedder.py          ← NEW: parse_vibe() — RAG extraction via Claude
-│   └── reliability.py       ← NEW: reliability_check() — dual-run diff
-├── main.py                  ← extended: runs all 3 profiles end-to-end
-└── model_card.md            ← documents dataset, algorithm, bias, limitations
+│   ├── recommender.py       ← Original scorer (extended with era matching)
+│   ├── embedder.py          ← RAG layer: parse_vibe() with confidence scoring
+│   └── reliability.py       ← Reliability check: paraphrase + compare
+├── tests/
+│   ├── test_recommender.py  ← 6 unit tests for scoring logic
+│   ├── test_embedder.py     ← 8 tests for extraction & validation
+│   └── test_integration.py  ← 4 tests for end-to-end pipeline
+├── .env                     ← ANTHROPIC_API_KEY (placeholder)
+├── main.py                  ← Full end-to-end pipeline (3 user profiles)
+├── run_tests.py             ← Test harness (18 tests total, all passing)
+├── requirements.txt         ← Dependencies (anthropic, tabulate)
+├── README.md                ← This file
+├── REFLECTION.md            ← Reflection on limitations, biases, misuse, 
+│                               testing surprises, and AI collaboration
+├── model_card.md            ← Dataset documentation, algorithm, biases
+└── TESTING.md               ← Testing methodology and results
 ```
 
 ---
@@ -258,6 +272,11 @@ check made that concrete.
 ---
 
 ## Reflection
+
+For detailed reflection on limitations, biases, misuse prevention, testing surprises, 
+and AI collaboration, see [REFLECTION.md](REFLECTION.md).
+
+**Key Takeaways:**
 
 This project changed how I think about what "using AI" in software actually 
 means. It's easy to treat a language model as a text generator — but integrating 
