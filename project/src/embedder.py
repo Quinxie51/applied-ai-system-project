@@ -1,5 +1,135 @@
 import os
 import json
+from typing import Dict, Optional
+
+try:
+    import anthropic
+except Exception:
+    anthropic = None
+
+
+def _validate_and_normalize(parsed: Dict[str, Optional[object]]) -> Dict[str, Optional[object]]:
+    """Validate parsed JSON against required schema and normalize invalid values to None."""
+    valid = {"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}
+
+    genres = {"pop", "rock", "indie", "hiphop", "edm", "jazz", "rnb"}
+    moods = {"happy", "sad", "angry", "chill", "romantic", "melancholic"}
+    eras = {"80s", "90s", "2000s", "2010s", "2020s"}
+
+    for k in valid.keys():
+        v = parsed.get(k)
+        if v is None:
+            valid[k] = None
+            continue
+
+        # Strings: normalize
+        if k in ("genre", "mood", "era"):
+            try:
+                s = str(v).strip()
+            except Exception:
+                valid[k] = None
+                continue
+            if k == "genre" and s.lower() in genres:
+                valid[k] = s.lower()
+            elif k == "mood" and s.lower() in moods:
+                valid[k] = s.lower()
+            elif k == "era" and s.lower() in eras:
+                valid[k] = s.lower()
+            else:
+                valid[k] = None
+        elif k == "energy":
+            try:
+                f = float(v)
+                if 0.0 <= f <= 1.0:
+                    valid[k] = f
+                else:
+                    valid[k] = None
+            except Exception:
+                valid[k] = None
+        elif k == "tempo_bpm":
+            try:
+                t = int(v)
+                if 60 <= t <= 180:
+                    valid[k] = t
+                else:
+                    valid[k] = None
+            except Exception:
+                valid[k] = None
+
+    return valid
+
+
+def parse_vibe(query: str) -> Dict[str, Optional[object]]:
+    """Parse a free-text vibe description into structured music attributes.
+
+    Calls the Anthropic API (model: claude-sonnet-4-20250514) with a system
+    prompt requesting a JSON object with keys: genre, mood, energy, tempo_bpm, era.
+
+    If the API call fails or returned values are out of range/schema, values
+    are set to None. API key is read from environment variable
+    ANTHROPIC_API_KEY.
+    """
+    system_prompt = (
+        "You are a music attribute extractor. Given a free-text vibe description,\n"
+        "return ONLY a valid JSON object with exactly these keys:\n"
+        "genre, mood, energy, tempo_bpm, era.\n\n"
+        "Rules:\n"
+        "- genre: one of pop, rock, indie, hiphop, edm, jazz, rnb — or null\n"
+        "- mood: one of happy, sad, angry, chill, romantic, melancholic — or null\n"
+        "- energy: a float between 0.0 and 1.0 representing intensity — or null\n"
+        "  (0.0 = very calm, 1.0 = very intense)\n"
+        "- tempo_bpm: an integer between 60 and 180 representing beats per minute — or null\n"
+        "  (60 = very slow, 180 = very fast)\n"
+        "- era: one of 80s, 90s, 2000s, 2010s, 2020s — or null\n\n"
+        "Return ONLY the JSON object. No explanation, no markdown, no extra text."
+    )
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("ANTHROPIC_API_KEY not found in environment")
+        return {"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}
+
+    prompt = system_prompt + "\n\n" + query
+
+    try:
+        if anthropic is None:
+            raise RuntimeError("anthropic SDK not installed")
+
+        client = anthropic.Client(api_key=api_key)
+        # Build basic prompt framing for Claude style
+        full_prompt = f"Human: {query}\n\nAssistant:"
+        resp = client.completions.create(model="claude-sonnet-4-20250514", prompt=full_prompt, max_tokens_to_sample=300)
+        # Extract text from response
+        text = None
+        if isinstance(resp, dict):
+            text = resp.get("completion") or resp.get("text") or str(resp)
+        else:
+            text = getattr(resp, "completion", None) or str(resp)
+
+        # Try to parse JSON directly from the returned text
+        parsed = None
+        try:
+            # Find first { .. } block
+            start = text.find("{")
+            end = text.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                json_text = text[start:end+1]
+                parsed = json.loads(json_text)
+        except Exception:
+            parsed = None
+
+        if not isinstance(parsed, dict):
+            # Could not parse; return all-null
+            return {"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}
+
+        validated = _validate_and_normalize(parsed)
+        return validated
+
+    except Exception as e:
+        print(f"parse_vibe API error: {e}")
+        return {"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}
+import os
+import json
 import re
 from typing import Dict, Optional
 

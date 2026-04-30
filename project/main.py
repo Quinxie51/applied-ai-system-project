@@ -38,39 +38,40 @@ def main() -> None:
     csv_path = os.path.normpath(os.path.join(base, "data", "songs.csv"))
     songs = load_songs(csv_path)
 
-    profiles = {
-        "Profile 1": "upbeat pop songs for a workout",
-        "Profile 2": "something sad and slow for a rainy day",
-        "Profile 3": "nostalgic 90s hip hop with high energy",
-    }
+    profiles = [
+        "upbeat pop songs for a workout",
+        "something sad and slow for a rainy day",
+        "nostalgic 90s hip hop with high energy",
+    ]
 
-    all_results = {}
+    all_results = []
 
-    for name, query in profiles.items():
-        print(f"\n=== {name}: '{query}' ===")
+    for query in profiles:
+        print(f"\n=== Profile query: '{query}' ===")
+
         # RAG step: parse vibe
-        try:
-            prefs = parse_vibe(query)
-        except Exception as e:
-            prefs = {"genre": None, "mood": None, "energy": None, "tempo": None, "era": None}
-            print(f"parse_vibe failed: {e}")
+        prefs = parse_vibe(query)
+        print("Extracted prefs:", prefs)
 
-        # Recommend
-        top3 = recommend_songs(prefs, songs)
-        print_top3_table(top3)
+        # Recommend (k=3)
+        top3 = recommend_songs(prefs, songs, k=3)
+        # Print table with rounded_outline
+        rows = []
+        for i, s in enumerate(top3, start=1):
+            rows.append([i, s.get("title"), s.get("artist"), s.get("score"), ", ".join(s.get("reasons", []))])
+        print(tabulate(rows, headers=["Rank", "Title", "Artist", "Score", "Reasons"], tablefmt="rounded_outline"))
 
         # Reliability
-        reliability = reliability_check(query, top3)
-        print("\nReliability:")
-        print(reliability)
+        reliability = reliability_check(query, top3, songs)
+        print("Reliability:", reliability)
 
-        all_results[name] = {"query": query, "prefs": prefs, "top3": top3, "reliability": reliability}
+        all_results.append({"query": query, "prefs": prefs, "top3": top3, "reliability": reliability})
 
     # Final summary
     print("\n=== Final summary of profiles ===")
-    for name, info in all_results.items():
+    for info in all_results:
         titles = [s.get("title") for s in info["top3"]]
-        print(f"{name}: top -> {titles} | stable: {info['reliability']['stable']}")
+        print(f"{info['query']}: top -> {titles} | stable: {info['reliability']['stable']}")
 
 
 if __name__ == "__main__":

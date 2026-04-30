@@ -11,11 +11,12 @@ def score_song(user_prefs: Dict[str, Optional[str]], song: Dict[str, str]) -> Tu
     reasons: List[str] = []
 
     # Matching rules and weights
+    # Matching rules and weights (preserve existing logic)
     weights = {
         "genre": 25,
         "mood": 25,
         "energy": 20,
-        "tempo": 15,
+        "tempo_bpm": 15,
         "era": 15,
     }
 
@@ -27,16 +28,40 @@ def score_song(user_prefs: Dict[str, Optional[str]], song: Dict[str, str]) -> Tu
             continue
         if song_val is None:
             continue
+
+        # For tempo_bpm and energy, user_prefs may be numeric; compare appropriately
+        try:
+            if key == "tempo_bpm":
+                # Exact match expected for this scoring (existing logic preserved)
+                if int(pref) == int(song_val):
+                    score += w
+                    reasons.append(f"matching tempo_bpm: {song_val}")
+                continue
+            if key == "energy":
+                # energy expected to be float; compare by equality of string-lowered values
+                if float(pref) == float(song_val):
+                    score += w
+                    reasons.append(f"matching {key}: {song_val}")
+                continue
+        except Exception:
+            # Fallback to string comparison below
+            pass
+
+        # Default string comparison for genre, mood, era
         if str(pref).lower() == str(song_val).lower():
             score += w
-            reasons.append(f"matching {key}: {song_val}")
+            if key == "era":
+                # Add era-specific reason with explicit weight mention
+                reasons.append(f"matching era: {song_val} (+15)")
+            else:
+                reasons.append(f"matching {key}: {song_val}")
 
     # Cap score at 100
     score = max(0, min(100, score))
     return int(score), reasons
 
 
-def recommend_songs(user_prefs: Dict[str, Optional[str]], songs: List[Dict[str, str]]) -> List[Dict[str, object]]:
+def recommend_songs(user_prefs: Dict[str, Optional[str]], songs: List[Dict[str, str]], k: int = 3) -> List[Dict[str, object]]:
     """Return top 3 recommended songs for the given user preferences.
 
     Steps:
@@ -52,7 +77,7 @@ def recommend_songs(user_prefs: Dict[str, Optional[str]], songs: List[Dict[str, 
             scored.append({"song": song, "score": s, "reasons": reasons})
 
     scored.sort(key=lambda x: x["score"], reverse=True)
-    top = scored[:3]
+    top = scored[:k]
 
     results: List[Dict[str, object]] = []
     for item in top:

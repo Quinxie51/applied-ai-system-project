@@ -1,21 +1,21 @@
-title,artist,genre,mood,energy,tempo,era
-Blinding Lights,The Weeknd,pop,happy,high,fast,2020s
-Shake It Off,Taylor Swift,pop,happy,high,fast,2010s
-Smells Like Teen Spirit,Nirvana,rock,angry,high,fast,1990s
-Bohemian Rhapsody,Queen,rock,melancholic,medium,mid,1980s
-Reptilia,The Strokes,indie,angry,high,fast,2000s
-Skinny Love,Bon Iver,indie,melancholic,low,slow,2000s
-Lose Yourself,Eminem,hiphop,angry,high,fast,2000s
-Juicy,The Notorious B.I.G.,hiphop,happy,medium,mid,1990s
-One More Time,Daft Punk,edm,happy,high,fast,2000s
-Strobe,Deadmau5,edm,chill,medium,mid,2000s
-Take Five,Dave Brubeck,jazz,chill,low,mid,2010s
-So What,Miles Davis,jazz,melancholic,low,mid,2010s
-No Scrubs,TLC,rnb,happy,medium,mid,1990s
-Earned It,The Weeknd,rnb,romantic,medium,slow,2010s
-Billie Jean,Michael Jackson,pop,romantic,high,fast,1980s
-Someone Like You,Adele,pop,sad,low,slow,2010s
-California Love,2Pac,hiphop,happy,high,fast,1990s
-Midnight City,M83,indie,chill,high,fast,2010s
-Bad Guy,Billie Eilish,indie,angry,medium,mid,2010s
-Uptown Funk,Bruno Mars,pop,happy,high,fast,2010s
+genre,mood,energy,tempo_bpm,title,artist,era
+pop,happy,0.90,171,Blinding Lights,The Weeknd,2020s
+pop,happy,0.95,160,Shake It Off,Taylor Swift,2010s
+rock,angry,0.95,116,Smells Like Teen Spirit,Nirvana,1990s
+rock,melancholic,0.50,72,Bohemian Rhapsody,Queen,1980s
+indie,angry,0.88,145,Reptilia,The Strokes,2000s
+indie,melancholic,0.20,68,Skinny Love,Bon Iver,2000s
+hiphop,angry,0.95,171,Lose Yourself,Eminem,2000s
+hiphop,happy,0.60,96,Juicy,The Notorious B.I.G.,1990s
+edm,happy,0.90,123,One More Time,Daft Punk,2000s
+edm,chill,0.50,128,Strobe,Deadmau5,2000s
+jazz,chill,0.40,174,Take Five,Dave Brubeck,2010s
+jazz,melancholic,0.35,130,So What,Miles Davis,2010s
+rnb,happy,0.60,100,No Scrubs,TLC,1990s
+rnb,romantic,0.55,67,Earned It,The Weeknd,2010s
+pop,romantic,0.92,117,Billie Jean,Michael Jackson,1980s
+pop,sad,0.22,68,Someone Like You,Adele,2010s
+hiphop,happy,0.93,150,California Love,2Pac,1990s
+indie,chill,0.80,105,Midnight City,M83,2010s
+indie,angry,0.55,135,Bad Guy,Billie Eilish,2010s
+pop,happy,0.97,115,Uptown Funk,Bruno Mars,2010s
