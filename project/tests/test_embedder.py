@@ -15,7 +15,7 @@ def test_validate_and_normalize_all_valid():
     assert result["energy"] == 0.85
     assert result["tempo_bpm"] == 140
     assert result["era"] == "2020s"
-    print("✓ test_validate_and_normalize_all_valid passed")
+    print("[PASS] test_validate_and_normalize_all_valid")
 
 
 def test_validate_and_normalize_invalid_energy():
@@ -23,7 +23,7 @@ def test_validate_and_normalize_invalid_energy():
     parsed = {"genre": "pop", "mood": "happy", "energy": 1.5, "tempo_bpm": 140, "era": "2020s"}
     result = _validate_and_normalize(parsed)
     assert result["energy"] is None, f"Expected None for energy 1.5, got {result['energy']}"
-    print("✓ test_validate_and_normalize_invalid_energy passed")
+    print("[PASS] test_validate_and_normalize_invalid_energy")
 
 
 def test_validate_and_normalize_invalid_tempo():
@@ -31,7 +31,7 @@ def test_validate_and_normalize_invalid_tempo():
     parsed = {"genre": "pop", "mood": "happy", "energy": 0.85, "tempo_bpm": 200, "era": "2020s"}
     result = _validate_and_normalize(parsed)
     assert result["tempo_bpm"] is None, f"Expected None for tempo 200, got {result['tempo_bpm']}"
-    print("✓ test_validate_and_normalize_invalid_tempo passed")
+    print("[PASS] test_validate_and_normalize_invalid_tempo")
 
 
 def test_validate_and_normalize_invalid_genre():
@@ -39,7 +39,7 @@ def test_validate_and_normalize_invalid_genre():
     parsed = {"genre": "electronic_pop", "mood": "happy", "energy": 0.85, "tempo_bpm": 140, "era": "2020s"}
     result = _validate_and_normalize(parsed)
     assert result["genre"] is None, f"Expected None for invalid genre, got {result['genre']}"
-    print("✓ test_validate_and_normalize_invalid_genre passed")
+    print("[PASS] test_validate_and_normalize_invalid_genre")
 
 
 def test_validate_and_normalize_null_values():
@@ -51,7 +51,7 @@ def test_validate_and_normalize_null_values():
     assert result["energy"] is None
     assert result["tempo_bpm"] == 140
     assert result["era"] is None
-    print("✓ test_validate_and_normalize_null_values passed")
+    print("[PASS] test_validate_and_normalize_null_values")
 
 
 def test_confidence_all_fields():
@@ -61,7 +61,7 @@ def test_confidence_all_fields():
     non_null = sum(1 for v in result.values() if v is not None)
     confidence = non_null / len(result)
     assert confidence == 1.0, f"Expected confidence 1.0 for all non-null, got {confidence}"
-    print("✓ test_confidence_all_fields passed")
+    print("[PASS] test_confidence_all_fields")
 
 
 def test_confidence_partial_fields():
@@ -72,7 +72,7 @@ def test_confidence_partial_fields():
     confidence = non_null / len(result)
     assert non_null == 3, f"Expected 3 non-null fields, got {non_null}"
     assert confidence == 0.6, f"Expected confidence 0.6, got {confidence}"
-    print("✓ test_confidence_partial_fields passed")
+    print("[PASS] test_confidence_partial_fields")
 
 
 def test_confidence_no_fields():
@@ -82,7 +82,7 @@ def test_confidence_no_fields():
     non_null = sum(1 for v in result.values() if v is not None)
     confidence = non_null / len(result)
     assert confidence == 0.0, f"Expected confidence 0.0 for all null, got {confidence}"
-    print("✓ test_confidence_no_fields passed")
+    print("[PASS] test_confidence_no_fields")
 
 
 if __name__ == "__main__":
@@ -104,10 +104,10 @@ if __name__ == "__main__":
             test()
             passed += 1
         except AssertionError as e:
-            print(f"✗ {test.__name__} failed: {e}")
+            print(f"[FAIL] {test.__name__}: {e}")
             failed += 1
         except Exception as e:
-            print(f"✗ {test.__name__} error: {e}")
+            print(f"[ERROR] {test.__name__}: {e}")
             failed += 1
     
     print(f"\n{passed} passed, {failed} failed")

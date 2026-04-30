@@ -36,7 +36,7 @@ def test_dataset_valid():
         for col in required_cols:
             assert col in song, f"Missing column '{col}' in song {song.get('title')}"
     
-    print(f"✓ test_dataset_valid passed ({len(songs)} songs loaded)")
+    print(f"[PASS] test_dataset_valid ({len(songs)} songs loaded)")
 
 
 def test_recommendation_returns_valid_structure():
@@ -58,7 +58,7 @@ def test_recommendation_returns_valid_structure():
         assert "reasons" in result
         assert isinstance(result["reasons"], list)
     
-    print("✓ test_recommendation_returns_valid_structure passed")
+    print("[PASS] test_recommendation_returns_valid_structure")
 
 
 def test_confidence_scoring():
@@ -70,7 +70,7 @@ def test_confidence_scoring():
     assert isinstance(parsed, dict), f"Expected dict parsed, got {type(parsed)}"
     assert all(k in parsed for k in ["genre", "mood", "energy", "tempo_bpm", "era"])
     
-    print(f"✓ test_confidence_scoring passed (confidence={confidence:.2f})")
+    print(f"[PASS] test_confidence_scoring (confidence={confidence:.2f})")
 
 
 def test_null_prefs_no_recommendations():
@@ -85,7 +85,7 @@ def test_null_prefs_no_recommendations():
     
     assert len(results) == 0, f"Expected no results for all-null prefs, got {len(results)}"
     
-    print("✓ test_null_prefs_no_recommendations passed")
+    print("[PASS] test_null_prefs_no_recommendations")
 
 
 if __name__ == "__main__":
@@ -103,10 +103,10 @@ if __name__ == "__main__":
             test()
             passed += 1
         except AssertionError as e:
-            print(f"✗ {test.__name__} failed: {e}")
+            print(f"[FAIL] {test.__name__}: {e}")
             failed += 1
         except Exception as e:
-            print(f"✗ {test.__name__} error: {e}")
+            print(f"[ERROR] {test.__name__}: {e}")
             failed += 1
     
     print(f"\n{passed} passed, {failed} failed")
