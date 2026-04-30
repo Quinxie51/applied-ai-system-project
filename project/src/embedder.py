@@ -1,6 +1,9 @@
 import os
 import json
-from typing import Dict, Optional
+import logging
+from typing import Dict, Optional, Tuple
+
+logger = logging.getLogger(__name__)
 
 try:
     import anthropic
@@ -69,6 +72,19 @@ def parse_vibe(query: str) -> Dict[str, Optional[object]]:
     are set to None. API key is read from environment variable
     ANTHROPIC_API_KEY.
     """
+    result, _ = parse_vibe_with_confidence(query)
+    return result
+
+
+def parse_vibe_with_confidence(query: str) -> Tuple[Dict[str, Optional[object]], float]:
+    """Parse a vibe description and return extracted prefs + confidence score.
+    
+    Confidence is computed as the fraction of non-null extracted attributes
+    (0.0 = all null, 1.0 = all fields populated). Returns a value between 0.0 and 1.0.
+    
+    Returns:
+        (parsed_dict, confidence_score) where confidence_score is 0.0-1.0
+    """
     system_prompt = (
         "You are a music attribute extractor. Given a free-text vibe description,\n"
         "return ONLY a valid JSON object with exactly these keys:\n"
@@ -121,15 +137,22 @@ def parse_vibe(query: str) -> Dict[str, Optional[object]]:
             parsed = None
 
         if not isinstance(parsed, dict):
-            # Could not parse; return all-null
-            return {"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}
+            # Could not parse; return all-null with low confidence
+            logger.warning(f"Failed to parse JSON from query: {query[:50]}")
+            return ({"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}, 0.0)
 
         validated = _validate_and_normalize(parsed)
-        return validated
+        
+        # Compute confidence as fraction of non-null fields
+        non_null_count = sum(1 for v in validated.values() if v is not None)
+        confidence = non_null_count / len(validated)  # 0.0 to 1.0
+        logger.info(f"parse_vibe query='{query[:40]}' -> confidence={confidence:.2f}, non_null={non_null_count}/5")
+        
+        return (validated, confidence)
 
     except Exception as e:
-        print(f"parse_vibe API error: {e}")
-        return {"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}
+        logger.error(f"parse_vibe API error: {e}")
+        return ({"genre": None, "mood": None, "energy": None, "tempo_bpm": None, "era": None}, 0.0)
 import os
 import json
 import re

@@ -1,10 +1,16 @@
 import os
 from typing import Dict, List
+import logging
+
+logger = logging.getLogger(__name__)
 
 try:
     import anthropic
 except Exception:
     anthropic = None
+
+from .embedder import parse_vibe_with_confidence
+from .recommender import recommend_songs
 
 from .embedder import parse_vibe
 from .recommender import recommend_songs
@@ -53,7 +59,7 @@ def reliability_check(original_query: str, top3: List[Dict[str, object]], songs:
         paraphrased = original_query
 
     # Parse paraphrased query and re-run recommendations
-    prefs = parse_vibe(paraphrased)
+    prefs, para_confidence = parse_vibe_with_confidence(paraphrased)
     new_top3 = recommend_songs(prefs, songs, k=3)
 
     orig_titles = [str(item.get("title")) for item in top3]
@@ -63,5 +69,7 @@ def reliability_check(original_query: str, top3: List[Dict[str, object]], songs:
     stable = overlap >= 2
 
     note = f"{overlap}/3 songs consistent — {'result is stable' if stable else 'result is unstable'}"
+    
+    logger.info(f"reliability_check query='{original_query[:40]}' -> overlap={overlap}/3, stable={stable}, para_confidence={para_confidence:.2f}")
 
     return {"stable": stable, "overlap": overlap, "paraphrased_query": paraphrased, "note": note}

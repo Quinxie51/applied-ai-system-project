@@ -1,4 +1,7 @@
 from typing import Dict, List, Tuple, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def score_song(user_prefs: Dict[str, Optional[str]], song: Dict[str, str]) -> Tuple[int, List[str]]:
@@ -78,6 +81,8 @@ def recommend_songs(user_prefs: Dict[str, Optional[str]], songs: List[Dict[str, 
 
     scored.sort(key=lambda x: x["score"], reverse=True)
     top = scored[:k]
+    
+    logger.info(f"recommend_songs evaluated {len(songs)} songs, returned top {len(top)} with scores {[item['score'] for item in top]}")
 
     results: List[Dict[str, object]] = []
     for item in top:

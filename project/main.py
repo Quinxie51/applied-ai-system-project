@@ -7,12 +7,19 @@ top songs, runs a reliability check, and prints results in tables.
 from typing import List, Dict
 import csv
 import os
+import logging
 
 from tabulate import tabulate
 
-from src.embedder import parse_vibe
+from src.embedder import parse_vibe_with_confidence
 from src.recommender import recommend_songs
 from src.reliability import reliability_check
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 
 def load_songs(csv_path: str) -> List[Dict[str, str]]:
@@ -49,9 +56,9 @@ def main() -> None:
     for query in profiles:
         print(f"\n=== Profile query: '{query}' ===")
 
-        # RAG step: parse vibe
-        prefs = parse_vibe(query)
-        print("Extracted prefs:", prefs)
+        # RAG step: parse vibe with confidence
+        prefs, confidence = parse_vibe_with_confidence(query)
+        print(f"Extracted prefs (confidence: {confidence:.0%}): {prefs}")
 
         # Recommend (k=3)
         top3 = recommend_songs(prefs, songs, k=3)
@@ -65,7 +72,7 @@ def main() -> None:
         reliability = reliability_check(query, top3, songs)
         print("Reliability:", reliability)
 
-        all_results.append({"query": query, "prefs": prefs, "top3": top3, "reliability": reliability})
+        all_results.append({"query": query, "prefs": prefs, "confidence": confidence, "top3": top3, "reliability": reliability})
 
     # Final summary
     print("\n=== Final summary of profiles ===")
